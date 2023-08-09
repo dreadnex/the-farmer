@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <openssl/evp.h>
+#include <openssl/sha.h>
 #include <libnotify/notify.h>
 
 #define MAX_PATH_LEN 256
