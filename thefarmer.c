@@ -77,12 +77,6 @@ void calculate_hash(const char *path, unsigned char *hash) {
     fclose(file);
 }
 
-
-    SHA256_Final(hash, &sha256_context);
-
-    fclose(file);
-}
-
 int main(int argc, char *argv[]) {
     int opt;
     while ((opt = getopt(argc, argv, "hf:")) != -1) {
@@ -100,7 +94,7 @@ int main(int argc, char *argv[]) {
                 }
                 int num_folders = 0;
 
-                for (int i = optind - 1; i < argc; i++) {
+                for (int i = optind; i < argc; i++) {
                     if (num_folders >= max_folders) {
                         fprintf(stderr, "Too many folders specified\n");
                         return 1;
@@ -124,8 +118,6 @@ int main(int argc, char *argv[]) {
                     }
                 }
 
-                // Rest of the code (hash comparison, notification, etc.)
-                 // Rest of the code (hash comparison, notification, etc.)
                 unsigned char hash[HASH_SIZE];
 
                 while (1) {
