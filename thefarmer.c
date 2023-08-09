@@ -56,7 +56,6 @@ void calculate_hash(const char *path, unsigned char *hash) {
 }
 
 int main(int argc, char *argv[]) {
-    // Parse command-line arguments
     int opt;
     while ((opt = getopt(argc, argv, "hf:")) != -1) {
         switch (opt) {
@@ -65,9 +64,12 @@ int main(int argc, char *argv[]) {
                 printf("  -f: Specify folders to monitor\n");
                 return 0;
             case 'f':
-                // Parse specified folders
                 const int max_folders = 10;
-                const char *folders[max_folders];
+                char **folders = (char **)malloc(max_folders * sizeof(char *));
+                if (folders == NULL) {
+                    perror("Memory allocation failed");
+                    return 1;
+                }
                 int num_folders = 0;
 
                 for (int i = optind - 1; i < argc; i++) {
@@ -78,24 +80,59 @@ int main(int argc, char *argv[]) {
                     folders[num_folders++] = argv[i];
                 }
 
-                unsigned char current_hashes[num_folders][HASH_SIZE];
-                unsigned char previous_hashes[num_folders][HASH_SIZE];
+                unsigned char **current_hashes = (unsigned char **)malloc(num_folders * sizeof(unsigned char *));
+                unsigned char **previous_hashes = (unsigned char **)malloc(num_folders * sizeof(unsigned char *));
+                if (current_hashes == NULL || previous_hashes == NULL) {
+                    perror("Memory allocation failed");
+                    return 1;
+                }
+
+                for (int i = 0; i < num_folders; i++) {
+                    current_hashes[i] = (unsigned char *)malloc(HASH_SIZE);
+                    previous_hashes[i] = (unsigned char *)malloc(HASH_SIZE);
+                    if (current_hashes[i] == NULL || previous_hashes[i] == NULL) {
+                        perror("Memory allocation failed");
+                        return 1;
+                    }
+                }
+
+                // Rest of the code (hash comparison, notification, etc.)
+                 // Rest of the code (hash comparison, notification, etc.)
+                unsigned char hash[HASH_SIZE];
 
                 while (1) {
                     for (int i = 0; i < num_folders; i++) {
-                        calculate_hash(folders[i], current_hashes[i]);
-                        if (memcmp(current_hashes[i], previous_hashes[i], HASH_SIZE) != 0) {
+                        calculate_hash(folders[i], hash);
+                        if (memcmp(hash, previous_hashes[i], HASH_SIZE) != 0) {
                             printf("Hash mismatch for folder %s!\n", folders[i]);
                             show_notification("Hash mismatch detected!");
-                            memcpy(previous_hashes[i], current_hashes[i], HASH_SIZE);
+                            memcpy(previous_hashes[i], hash, HASH_SIZE);
                         }
                     }
 
                     if (sleep(60) != 0) {
                         perror("Failed to sleep");
+                        // Clean up allocated memory
+                        for (int i = 0; i < num_folders; i++) {
+                            free(current_hashes[i]);
+                            free(previous_hashes[i]);
+                        }
+                        free(current_hashes);
+                        free(previous_hashes);
+                        free(folders);
                         exit(EXIT_FAILURE);
                     }
                 }
+
+                // Clean up allocated memory
+                for (int i = 0; i < num_folders; i++) {
+                    free(current_hashes[i]);
+                    free(previous_hashes[i]);
+                }
+                free(current_hashes);
+                free(previous_hashes);
+                free(folders);
+                
                 break;
 
             default:
