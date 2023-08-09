@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     while ((opt = getopt(argc, argv, "hf:")) != -1) {
         switch (opt) {
             case 'h':
-                print(" The Farmer, An Adrian Gaithuma Tool ; Usage: %s [-f folder1 folder2 ...]\n", argv[0]);
+                printf(" The Farmer, An Adrian Gaithuma Tool ; Usage: %s [-f folder1 folder2 ...]\n", argv[0]);
                 printf("  -f: Specify folders to monitor\n");
                 return 0;
             case 'f':
