@@ -40,15 +40,43 @@ void calculate_hash(const char *path, unsigned char *hash) {
         exit(EXIT_FAILURE);
     }
 
-    SHA256_CTX sha256_context;
-    SHA256_Init(&sha256_context);
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
+    if (mdctx == NULL) {
+        perror("Failed to create EVP_MD_CTX");
+        fclose(file);
+        exit(EXIT_FAILURE);
+    }
+
+    if (!EVP_DigestInit_ex(mdctx, EVP_sha256(), NULL)) {
+        perror("Failed to initialize digest");
+        EVP_MD_CTX_free(mdctx);
+        fclose(file);
+        exit(EXIT_FAILURE);
+    }
 
     unsigned char buffer[1024];
     size_t bytes_read;
 
     while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) != 0) {
-        SHA256_Update(&sha256_context, buffer, bytes_read);
+        if (!EVP_DigestUpdate(mdctx, buffer, bytes_read)) {
+            perror("Failed to update digest");
+            EVP_MD_CTX_free(mdctx);
+            fclose(file);
+            exit(EXIT_FAILURE);
+        }
     }
+
+    if (!EVP_DigestFinal_ex(mdctx, hash, NULL)) {
+        perror("Failed to finalize digest");
+        EVP_MD_CTX_free(mdctx);
+        fclose(file);
+        exit(EXIT_FAILURE);
+    }
+
+    EVP_MD_CTX_free(mdctx);
+    fclose(file);
+}
+
 
     SHA256_Final(hash, &sha256_context);
 
